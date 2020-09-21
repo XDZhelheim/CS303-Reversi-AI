@@ -19,7 +19,7 @@ class AI(object):
     [20, -3, 11, 8, 8, 11, -3, 20]
     ])
 
-    MAX_DEPTH=2
+    MAX_DEPTH=3
 
     def __init__(self, chessboard_size, color, time_out):
         self.chessboard_size=chessboard_size
@@ -103,25 +103,33 @@ class AI(object):
         templist=[]
         self.find_all_pos(tempboard, -color, templist)
 
-        maxvalue=-666666
-        for p in templist:
-            tempvalue=self.evaluate(tempboard, -color, p, depth+1)
-            if tempvalue>maxvalue:
-                maxvalue=tempvalue
+        if color==-self.color:
+            maxvalue=-666666
+            for p in templist:
+                tempvalue=self.evaluate(tempboard, -color, p, depth+1)
+                if tempvalue>maxvalue:
+                    maxvalue=tempvalue
+        else:
+            minvalue=666666
+            for p in templist:
+                tempvalue=self.evaluate(tempboard, -color, p, depth+1)
+                if tempvalue<minvalue:
+                    minvalue=tempvalue
+        delta=maxvalue if color==-self.color else minvalue
 
-        # print(value+maxvalue if color==self.color else -value+maxvalue)
+        # print(value+delta if color==self.color else -value+delta)
 
-        return value+maxvalue if color==self.color else -value+maxvalue
+        return value+delta if color==self.color else -value+delta
 
-# if __name__ == "__main__":
-#     ai=AI(8, 1, 30)
-#     cb=np.array([[0, 0, 0, 0, 0, 0, 0, 0],
-#                  [0, 0, 0, 0, 0, 0, 0, 0],
-#                  [0, 0, 0, 0, 0, 0, 0, 0],
-#                  [0, 0, 0, 1, -1, 0, 0, 0],
-#                  [0, 0, 0, -1, 1, 0, 0, 0],
-#                  [0, 0, 0, 0, 0, 0, 0, 0],
-#                  [0, 0, 0, 0, 0, 0, 0, 0],
-#                  [0, 0, 0, 0, 0, 0, 0, 0]])
-#     ai.go(cb)
-#     print(ai.candidate_list)
+if __name__ == "__main__":
+    ai=AI(8, 1, 30)
+    cb=np.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 1, -1, 0, 0, 0],
+                 [0, 0, 0, -1, 1, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0]])
+    ai.go(cb)
+    print(ai.candidate_list)
