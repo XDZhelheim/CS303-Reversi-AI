@@ -66,6 +66,7 @@ class AI(object):
                         elif chessboard[currentpos]==color:
                             if flag:
                                 li.append(coord)
+                                return
                             break
     
     def flip(self, chessboard, color, pos):
@@ -131,5 +132,14 @@ if __name__ == "__main__":
                  [0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0]])
-    ai.go(cb)
+
+    te=np.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 1, 0, 1, -1, 0, 0, 0],
+                 [0, 1, -1, -1, -1, -1, 0, 0],
+                 [0, -1, 1, 1, -1, 0, 0, 0],
+                 [0, 0, 0, -1, 1, 0, 0, 0],
+                 [0, 0, 0, 1, 1, -1, 0, 0],
+                 [0, 0, 1, 0, 1, 0, 0, 0],
+                 [0, 1, -1, -1, 0, 1, 0, 0]])
+    ai.go(te)
     print(ai.candidate_list)
