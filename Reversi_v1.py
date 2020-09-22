@@ -19,10 +19,7 @@ class AI(object):
     [20, -3, 11, 8, 8, 11, -3, 20]
     ])
 
-    MAX_DEPTH=4
-
-    MAX_INT=666666
-    MIN_INT=-666666
+    MAX_DEPTH=2
 
     def __init__(self, chessboard_size, color, time_out):
         self.chessboard_size=chessboard_size
@@ -37,9 +34,9 @@ class AI(object):
 
         if self.candidate_list:
             maxpos=self.candidate_list[0]
-            maxvalue=self.evaluate(chessboard, self.color, maxpos, AI.MAX_INT, 0, 0)
+            maxvalue=self.evaluate(chessboard, self.color, maxpos, 0)
             for i in range(1, len(self.candidate_list)):
-                tempvalue=self.evaluate(chessboard, self.color, self.candidate_list[i], AI.MAX_INT, 0, 0)
+                tempvalue=self.evaluate(chessboard, self.color, self.candidate_list[i], 0)
                 if tempvalue>maxvalue:
                     maxpos=self.candidate_list[i]
                     maxvalue=tempvalue
@@ -94,19 +91,12 @@ class AI(object):
                                     tempboard[pos[0]+k*i][pos[1]+k*j]*=-1
         return tempboard
 
-    def evaluate(self, chessboard, color, pos, pre_level_value, father_value, depth):
+    def evaluate(self, chessboard, color, pos, depth):
         if depth>AI.MAX_DEPTH:
             return 0
 
         tempboard=self.flip(chessboard, color, pos)
-        if color==self.color:
-            value=AI.value_table[pos]
-            if value+father_value>=pre_level_value:
-                return AI.MIN_INT
-        else:
-            value=-AI.value_table[pos]
-            if value+father_value<=pre_level_value:
-                return AI.MAX_INT
+        value=AI.value_table[pos]
 
         # print(tempboard)
 
@@ -114,22 +104,22 @@ class AI(object):
         self.find_all_pos(tempboard, -color, templist)
 
         if color==-self.color:
-            maxvalue=AI.MIN_INT
+            maxvalue=-666666
             for p in templist:
-                tempvalue=self.evaluate(tempboard, -color, p, maxvalue, value, depth+1)
+                tempvalue=self.evaluate(tempboard, -color, p, depth+1)
                 if tempvalue>maxvalue:
                     maxvalue=tempvalue
         else:
-            minvalue=AI.MAX_INT
+            minvalue=666666
             for p in templist:
-                tempvalue=self.evaluate(tempboard, -color, p, minvalue, value, depth+1)
+                tempvalue=self.evaluate(tempboard, -color, p, depth+1)
                 if tempvalue<minvalue:
                     minvalue=tempvalue
         delta=maxvalue if color==-self.color else minvalue
 
         # print(value+delta if color==self.color else -value+delta)
 
-        return value+delta
+        return value+delta if color==self.color else -value+delta
 
 if __name__ == "__main__":
     ai=AI(8, 1, 30)
