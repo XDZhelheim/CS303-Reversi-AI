@@ -90,6 +90,7 @@ class AI(object):
                             if flag:
                                 for k in range(1, step):
                                     tempboard[pos[0]+k*i][pos[1]+k*j]*=-1
+                            break
         return tempboard
 
     def evaluate(self, chessboard, color, pos, depth):

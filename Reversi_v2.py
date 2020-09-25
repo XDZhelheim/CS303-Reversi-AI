@@ -19,7 +19,7 @@ class AI(object):
     [20, -3, 11, 8, 8, 11, -3, 20]
     ])
 
-    MAX_DEPTH=2
+    MAX_DEPTH=3
 
     MAX_INT=666666
     MIN_INT=-666666
@@ -93,6 +93,7 @@ class AI(object):
                             if flag:
                                 for k in range(1, step):
                                     tempboard[pos[0]+k*i][pos[1]+k*j]*=-1
+                            break
         return tempboard
 
     def evaluate(self, chessboard, color, current_level_value, pos, depth):
