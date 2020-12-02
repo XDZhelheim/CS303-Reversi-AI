@@ -9,14 +9,14 @@ COLOR_NONE=0
 class AI(object):
 
     value_table=np.array([
-    [999, -3, 11, 8, 8, 11, -3, 999],
-    [-3, -7, -4, 1, 1, -4, -7, -3],
-    [11, -4, 2, 2, 2, 2, -4, 11],
-    [8, 1, 2, -3, -3, 2, 1, 8],
-    [8, 1, 2, -3, -3, 2, 1, 8],
-    [11, -4, 2, 2, 2, 2, -4, 11],
-    [-3, -7, -4, 1, 1, -4, -7, -3],
-    [999, -3, 11, 8, 8, 11, -3, 999]
+    [9999, 0, 11, 8, 8, 11, 0, 9999],
+    [0, -10, -4, 1, 1, -4, -10, 0],
+    [11, -4, 5, 5, 5, 5, -4, 11],
+    [8, 1, 5, -3, -3, 5, 1, 8],
+    [8, 1, 5, -3, -3, 5, 1, 8],
+    [11, -4, 5, 5, 5, 5, -4, 11],
+    [0, -10, -4, 1, 1, -4, -10, 0],
+    [9999, 0, 11, 8, 8, 11, 0, 9999]
     ])
 
     MAX_DEPTH=3
@@ -34,6 +34,9 @@ class AI(object):
         self.candidate_list.clear()
 
         self.find_all_pos(chessboard, self.color, self.candidate_list)
+        if self.candidate_list:
+            if self.candidate_list[len(self.candidate_list)-1] in [(6, 7), (6, 6), (7, 6), (6, 0), (6, 1), (7, 1), (0, 1), (1, 0), (1, 1), (0, 6), (1, 6), (1, 7)]:
+                self.candidate_list[(len(self.candidate_list)-1)//2], self.candidate_list[len(self.candidate_list)-1]=self.candidate_list[len(self.candidate_list)-1], self.candidate_list[(len(self.candidate_list)-1)//2]
 
         if self.candidate_list:
             if self.countstep(chessboard)<8:
@@ -50,6 +53,11 @@ class AI(object):
 
     def countstep(self, chessboard):
         allchess=np.where(chessboard!=COLOR_NONE)
+        allchess=list(zip(allchess[0], allchess[1]))
+        return len(allchess)
+
+    def count_my_chess(self, chessboard, color):
+        allchess=np.where(chessboard==color)
         allchess=list(zip(allchess[0], allchess[1]))
         return len(allchess)
 
@@ -114,6 +122,23 @@ class AI(object):
         return count
 
     def is_stable(self, chessboard, color, pos):
+        flag=True
+        for i in (0, 1, -1):
+            for j in (0, 1, -1):
+                if flag:
+                    if (i, j)==(0, 0):
+                        continue
+                    else:
+                        for step in range(1, 8):
+                            currentpos=(pos[0]+step*i, pos[1]+step*j)
+                            if currentpos[0]>7 or currentpos[0]<0 or currentpos[1]>7 or currentpos[1]<0:
+                                break
+                            elif chessboard[currentpos]==COLOR_NONE:
+                                flag=False
+                                break
+        if flag:
+            return True
+
         flag1_1=True; flag1_2=True
         flag2_1=True; flag2_2=True
         flag3_1=True; flag3_2=True
@@ -201,40 +226,36 @@ class AI(object):
                     temppos=(pos[0]+i, pos[1]+j)
                     if chessboard[temppos]==COLOR_NONE:
                         return True
-    
-    def is_sb(self, chessboard, color, pos):
-        if chessboard[pos]!=color:
-            return 0
-        if pos[0]==7 or pos[0]==0:
-            temppos=(pos[0], pos[1]+1)
-            if not (temppos[0]>7 or temppos[0]<0 or temppos[1]>7 or temppos[1]<0):
-                if chessboard[temppos]==-color:
-                    return 1
-            temppos=(pos[0], pos[1]-1)
-            if not (temppos[0]>7 or temppos[0]<0 or temppos[1]>7 or temppos[1]<0):
-                if chessboard[temppos]==-color:
-                    return 1
-        elif pos[1]==7 or pos[1]==0:
-            temppos=(pos[0]+1, pos[1])
-            if not (temppos[0]>7 or temppos[0]<0 or temppos[1]>7 or temppos[1]<0):
-                if chessboard[temppos]==-color:
-                    return 1
-            temppos=(pos[0]-1, pos[1])
-            if not (temppos[0]>7 or temppos[0]<0 or temppos[1]>7 or temppos[1]<0):
-                if chessboard[temppos]==-color:
-                    return 1
-        return 0
 
+    def count_edge(self, chessboard, color):
+        count=0
+        mychess=np.where(chessboard==color)
+        mychess=list(zip(mychess[0], mychess[1]))
+        for pos in mychess:
+            if pos[0]==7 or pos[0]==0 or pos[1]==7 or pos[1]==0:
+                count+=1
+        return count
+    
     def evaluate(self, chessboard, color, current_level_value, pos, depth):
         if depth>AI.MAX_DEPTH:
             return 0
 
         tempboard=self.flip(chessboard, color, pos)
-        # print(tempboard)
         templist=[]
         self.find_all_pos(tempboard, -color, templist)
 
-        calculated_value=AI.value_table[pos]*2-self.count_diffu(tempboard, color)*3+self.count_stable(tempboard, color)*10
+        step=self.countstep(tempboard)
+        if (step<16):
+            AI.MAX_DEPTH=4
+            calculated_value=AI.value_table[pos]*2-self.count_diffu(tempboard, color)*3
+        elif (step>=16 and step<56):
+            AI.MAX_DEPTH=3
+            calculated_value=AI.value_table[pos]*2-self.count_diffu(tempboard, color)*5+self.count_stable(tempboard, color)*20
+        elif (step>=56):
+            AI.MAX_DEPTH=4
+            calculated_value=AI.value_table[pos]+self.count_stable(tempboard, color)*15+self.count_my_chess(tempboard, color)*5
+
+
         value=calculated_value if color==self.color else -calculated_value
 
         maxvalue=AI.MIN_INT
@@ -257,18 +278,14 @@ class AI(object):
             
         delta=maxvalue if color==-self.color else minvalue
 
-        # print(value+delta if color==self.color else -value+delta)
-
         return value+delta
     
     def get_value(self, chessboard, clv, pos):
         v=self.evaluate(chessboard, self.color, clv, pos, 0)
-        # tempboard=self.flip(chessboard, self.color, pos)
-        # v=v-self.is_sb(tempboard, self.color, pos)*1000
         return v
 
 if __name__ == "__main__":
-    ai=AI(8, -1, 30)
+    ai=AI(8, 1, 30)
     cb=np.array([[0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0],
@@ -278,33 +295,24 @@ if __name__ == "__main__":
                  [0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0]])
 
-    te=np.array([[0, 0, 1, 1, 1, 1, 0, 0],
-                 [-1, 0, -1, 1, 1, 1, 0, 1],
-                 [-1, -1, -1, -1, 1, 1, 1, 1],
-                 [-1, 1, -1, -1, -1, 1, 1, 1],
-                 [-1, 1, -1, -1, -1, 1, 1, 1],
-                 [-1, -1, -1, -1, -1, -1, 1, 1],
-                 [0, 0, -1, -1, -1, -1, 0, 0],
-                 [0, -1, -1, -1, -1, -1, -1, 0]])
-
-    te2=np.array([[0, 0, -1, 0, 1, 0, 0, 0],
-                 [0, 0, -1, 1, 1, 1, 0, 0],
-                 [-1, -1, -1, 1, -1, -1, 0, 0],
-                 [0, 0, 1, -1, -1, -1, 0, 0],
-                 [0, 0, -1, 1, -1, -1, 0, 0],
-                 [0, 0, -1, -1, -1, -1, 0, 0],
+    te=np.array([[0, 0, 1, 0, 0, 0, 0, 0],
+                 [0, 0, 1, -1, 0, 0, 0, 0],
+                 [0, 0, -1, 0, -1, -1, 0, 0],
+                 [-1, -1, 1, 1, 1, -1, 0, 0],
+                 [-1, -1, 1, 1, -1, -1, 0, 0],
+                 [-1, -1, -1, -1, -1, -1, -1, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0]])
 
-    te3=np.array([[0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 1],
-                 [0, 0, 0, -1, -1, -1, 0, 1],
-                 [0, 0, 0, -1, -1, -1, -1, 1],
-                 [0, 0, 0, -1, -1, -1, 1, 1],
-                 [0, 0, 0, -1, -1, 1, 1, 1],
-                 [0, 0, 1, 1, 1, 1, 1, 1],
-                 [0, 1, 1, 1, 1, 1, 1, 1]])
+    te2=np.array([[1, 1, 1, 1, 1, 1, 1, 1],
+                 [1, 0, 0, 0, 0, 0, 0, 1],
+                 [1, 0, 0, 0, 0, 0, 0, 1],
+                 [1, 0, 0, 1, -1, 0, 0, 1],
+                 [1, 0, 0, -1, 1, 0, 0, 1],
+                 [1, 0, 0, 0, 0, 0, 0, 1],
+                 [1, 0, 0, 0, 0, 0, 0, 1],
+                 [1, 1, 1, 1, 1, 1, 1, 1]])
+
     ai.go(te)
     print(ai.candidate_list)
-    # print(ai.is_sb(te2, 1, (6, 0)))
-    # print(ai.count_stable(te, 1))
+    print(ai.count_edge(te2, 1))
